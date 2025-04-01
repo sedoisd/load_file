@@ -4,9 +4,17 @@ from io import BytesIO
 
 app = Flask(__name__)
 
+file_format = None
+
+
+def get_code_img():
+    return (f'<img src="{url_for('static', filename=f"image/result.{file_format}")}" '
+            f'alt="здесь должна была быть картинка, но не нашлась">')
+
 
 @app.route('/', methods=['POST', 'GET'])
 def choice():
+    global file_format
     if request.method == 'GET':
         return f'''<!doctype html>
                             <html lang="en">
@@ -27,6 +35,7 @@ def choice():
                                     <div class="form-group">
                                         <label for="photo">Приложите фотографию</label>
                                         <input type="file" class="form-control-file" id="photo" name="file">
+                                        {get_code_img() if file_format is not None else ''}
                                     </div>
                                     <button type="submit" class="btn btn-primary">Отправить</button>
                                 </form>
@@ -39,6 +48,7 @@ def choice():
         im = Image.open(BytesIO(data))
         # im.show()
         im.save('static/image/result.{im_format}'.format(im_format=im.format))
+        file_format = im.format
         return f'''<!doctype html>
                             <html lang="en">
                               <head>
@@ -53,11 +63,14 @@ def choice():
                               <h1 align="center">Загрузка фотографии</h1>
                               <h3 align="center">для участия в миссии</h3>
                               <div>
-                                <form class="login_form" method="post">
+                                <form class="login_form" method="post" enctype="multipart/form-data">
+    
                                     <div class="form-group">
-                                        <img src="{url_for('static', filename=f"image/result.{im.format}")}" 
-                                           alt="здесь должна была быть картинка, но не нашлась">
+                                        <label for="photo">Приложите фотографию</label>
+                                        <input type="file" class="form-control-file" id="photo" name="file">
+                                        {get_code_img() if file_format is not None else ''}
                                     </div>
+                                    <button type="submit" class="btn btn-primary">Отправить</button>
                                 </form>
                               </div>
                               </body>
